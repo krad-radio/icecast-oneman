@@ -80,6 +80,7 @@ src/format_kate.o
 src/format_midi.o
 src/format_mkv.o
 src/format_mp3.o
+src/format_opus.o
 src/format_ogg.o
 src/format_skeleton.o
 src/format_speex.o

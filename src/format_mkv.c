@@ -157,8 +157,9 @@ static refbuf_t *mkv_get_buffer (source_t *source)
 	if (mkv_source_state->slice_refbuf_len == 0) {
 	
 		mkv_source_state->slice_refbuf_len = kradsource_receiver_client_slice(source, mkv_source_state->slice_refbuf->data);
-	
-		if (mkv_source_state->slice_refbuf_len == 0) {
+		if (mkv_source_state->slice_refbuf_len > 0) {
+			source->format->read_bytes += mkv_source_state->slice_refbuf_len;
+		} else {
 			return NULL;
 		}
 	}

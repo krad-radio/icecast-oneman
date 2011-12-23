@@ -65,6 +65,8 @@ format_type_t format_get_type (const char *contenttype)
         return FORMAT_TYPE_OGG;
     else if(strcmp(contenttype, "video/ogg") == 0)
         return FORMAT_TYPE_OGG;
+    else if(strcmp(contenttype, "audio/x-krad-opus") == 0)
+        return FORMAT_TYPE_EBML;
     else if(strcmp(contenttype, "audio/webm") == 0)
         return FORMAT_TYPE_EBML;
     else if(strcmp(contenttype, "video/webm") == 0)

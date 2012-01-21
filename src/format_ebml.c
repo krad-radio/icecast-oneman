@@ -71,7 +71,7 @@ int format_ebml_get_plugin (source_t *source)
 	plugin->_state = ebml_source_state;
 	source->format = plugin;
 
-	ebml_source_state->ebml = kradebml_create_feedbuffer();
+	ebml_source_state->ebml = krad_ebml_create_feedbuffer();
 	return 0;
 }
 
@@ -81,7 +81,7 @@ static void ebml_free_plugin (format_plugin_t *plugin)
 	ebml_source_state_t *ebml_source_state = plugin->_state;
 
 	refbuf_release (ebml_source_state->header);
-	kradebml_destroy(ebml_source_state->ebml);
+	krad_ebml_destroy(ebml_source_state->ebml);
 	free (ebml_source_state);
     free (plugin);
     
@@ -138,39 +138,37 @@ static refbuf_t *ebml_get_buffer (source_t *source)
 	
 	while (1) 
 	{
-	
-		if ((bytes = kradebml_read_space(ebml_source_state->ebml)) > 0) 
+
+		if ((bytes = krad_ebml_read_space(ebml_source_state->ebml)) > 0) 
 		{
 			refbuf = refbuf_new(bytes);
-			kradebml_read(ebml_source_state->ebml, refbuf->data, bytes);
+			krad_ebml_read(ebml_source_state->ebml, refbuf->data, bytes);
 			
 			if (ebml_source_state->header == NULL) 
 			{
 				ebml_source_state->header = refbuf;
-				printf("got header %d bytes\n", refbuf->len);
 				continue;
 			}
 			
-			if (kradebml_last_was_sync(ebml_source_state->ebml)) 
+			if (krad_ebml_last_was_sync(ebml_source_state->ebml)) 
 			{
 				refbuf->sync_point = 1;
 			}
-			
 			return refbuf;
 			
 		}
 		else
 		{
 		
-		    data = kradebml_write_buffer(ebml_source_state->ebml, 4096);
+		    data = krad_ebml_write_buffer(ebml_source_state->ebml, 4096);
 		    bytes = client_read_bytes (source->client, data, 4096);
 			if (bytes <= 0) 
 			{
-				kradebml_wrote (ebml_source_state->ebml, 0);
+				krad_ebml_wrote (ebml_source_state->ebml, 0);
 				return NULL;
 			}
 			format->read_bytes += bytes;
-	        kradebml_wrote (ebml_source_state->ebml, bytes);
+	        krad_ebml_wrote (ebml_source_state->ebml, bytes);
 		}	
 	}
 }

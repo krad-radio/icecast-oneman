@@ -94,17 +94,6 @@ fi
 dnl we still use format_kate as it doesn't need libkate to work
 #ICECAST_OPTIONAL="$ICECAST_OPTIONAL format_kate.o"
 
-AC_CHECK_LIB(kradebml, kradebml_create,[have_kradebml=yes],[have_kradebml=no], -lkradebml)
-if test "x$have_kradebml" == "xyes"
-then
-  AC_CHECK_LIB(kradebml, kradebml_destroy,[have_kradebml=yes],[have_kradebml=no],-lkradebml)
-  if test "x$have_kradebml" == "xyes"
-  then
-    KRADEBML_LIBS="-lkradebml"
-    AC_DEFINE([HAVE_KRADEBML],[1],[Define if you have libkradebml])
-  fi
-fi
-
 ACX_PTHREAD(, AC_MSG_ERROR([POSIX threads missing]))
 XIPH_VAR_APPEND([XIPH_CFLAGS],[$PTHREAD_CFLAGS])
 XIPH_VAR_APPEND([XIPH_CPPFLAGS],[$PTHREAD_CPPFLAGS])

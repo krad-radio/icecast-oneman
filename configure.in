@@ -149,8 +149,6 @@ AC_SUBST(PROFILE)
 AC_SUBST(ICECAST_OPTIONAL)
 AC_SUBST(HAVE_KATE)
 AC_SUBST(KATE_LIBS)
-AC_SUBST(HAVE_KRADEBML)
-AC_SUBST(KRADEBML_LIBS)
 
 AC_OUTPUT([Makefile conf/Makefile debian/Makefile src/Makefile src/avl/Makefile
 src/httpp/Makefile src/thread/Makefile src/log/Makefile

@@ -240,7 +240,7 @@ static int ebml_create_client_data (source_t *source, client_t *client)
 
     int ret = -1;
 
-    if (ebml_client_data)
+    if ((ebml_client_data) && (ebml_source_state->header))
     {
         ebml_client_data->header = ebml_source_state->header;
         refbuf_addref (ebml_client_data->header);

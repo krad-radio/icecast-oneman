@@ -474,14 +474,13 @@ static int ebml_last_was_sync(ebml_t *ebml) {
     if (ebml->last_was_cluster_end == 1) {
         ebml->last_was_cluster_end = 0;
         ebml->this_was_cluster_start = 1;
+        return 0;
     }
 
     if (ebml->this_was_cluster_start == 1) {
         ebml->this_was_cluster_start = 0;
         return 1;
     }
-
-    return 0;
 
 }
 

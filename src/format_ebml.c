@@ -36,7 +36,7 @@
 
 #include "logging.h"
 
-#define EBML_DEBUG 0
+#define EBML_DEBUG 1
 #define EBML_HEADER_MAX_SIZE 131072
 #define EBML_SLICE_SIZE 4096
 
@@ -295,7 +295,7 @@ static ebml_t *ebml_create() {
 
     ebml->cluster_id = "\x1F\x43\xB6\x75";
 
-	ebml->cluster_start = -1;
+	ebml->cluster_start = -2;
 
     return ebml;
 
@@ -348,12 +348,12 @@ static int ebml_read(ebml_t *ebml, char *buffer, int len) {
             to_read = read_space;
         }
 
-
-
         memcpy(buffer, ebml->buffer, to_read);
         memmove(ebml->buffer, ebml->buffer + to_read, ebml->position - to_read);
         ebml->position -= to_read;
-        ebml->cluster_start -= to_read;
+        if (ebml->cluster_start > 0) {
+        	ebml->cluster_start -= to_read;
+        }
 
     } else {
         if (ebml->header_size != 0) {
@@ -386,7 +386,12 @@ static int ebml_read(ebml_t *ebml, char *buffer, int len) {
 static int ebml_last_was_sync(ebml_t *ebml) {
 
   if (ebml->cluster_start == 0) {
-    ebml->cluster_start = -1;
+    ebml->cluster_start -= 1;
+    return 0;
+  }
+  
+  if (ebml->cluster_start == -1) {
+    ebml->cluster_start -= 1;
     return 1;
   }
     
@@ -403,9 +408,6 @@ static char *ebml_write_buffer(ebml_t *ebml, int len) {
 
 static int ebml_wrote(ebml_t *ebml, int len) {
 
-    int b;
-
-
     if (ebml->header_size == 0) {
         if ((ebml->header_position + len) > EBML_HEADER_MAX_SIZE) {
             ERROR0("EBML Header to large, failing");
@@ -418,36 +420,32 @@ static int ebml_wrote(ebml_t *ebml, int len) {
         memcpy(ebml->header + ebml->header_position, ebml->input_buffer, len);
         ebml->header_position += len;
     } else {
-    
 		memcpy(ebml->buffer + ebml->position, ebml->input_buffer, len);
     }
 
+	int z;
+	int y;
+	y = 0;
+	
+	for (z = 0; z < len - 4; z++) {
 
-    for (b = 0; b < len; b++) {
+		y = memcmp ( ebml->input_buffer + z, ebml->cluster_id, 4 );
+		if (y == 0) {
 
-		int z;
-		int y;
-		y = 0;
-		
-		for (z = 0; z < len - 4; z++) {
+			//printf("match!\n");
 
-			y = memcmp ( ebml->input_buffer + z, ebml->cluster_id, 4 );
-			if (y == 0) {
-
-				printf("match!\n");
-
-				if (ebml->header_size == 0) {
-					ebml->header_size = ebml->header_position - len + z;
-					memcpy(ebml->buffer, ebml->input_buffer + z, len - z);
-			        ebml->position = len - z;
-					ebml->cluster_start = 0;
-				} else {
-					ebml->cluster_start = ebml->position + z;
-				}
+			if (ebml->header_size == 0) {
+				ebml->header_size = ebml->header_position - len + z;
+				memcpy(ebml->buffer, ebml->input_buffer + z, len - z);
+		        ebml->position = len - z;
+				ebml->cluster_start = -1;
+				return len;
+			} else {
+				ebml->cluster_start = ebml->position + z;
 			}
 		}
-    }
-
+	}
+    
 	ebml->position += len;
 
     return len;

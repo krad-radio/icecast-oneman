@@ -430,6 +430,7 @@ static int ebml_read(ebml_t *ebml, char *buffer, int len) {
                 ebml->last_was_cluster_end = 1;
             } else {
                 if (read_space_to_cluster == 0) {
+                    ebml->cluster_position = 0;
                     ebml->this_was_cluster_start = 1;
                 }
             }

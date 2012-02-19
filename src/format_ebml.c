@@ -36,7 +36,7 @@
 
 #include "logging.h"
 
-#define EBML_DEBUG 1
+#define EBML_DEBUG 0
 #define EBML_HEADER_MAX_SIZE 131072
 #define EBML_SLICE_SIZE 4096
 
@@ -276,7 +276,8 @@ static void ebml_write_buf_to_file (source_t *source, refbuf_t *refbuf)
 
 /* internal ebml parsing */
 
-static void ebml_destroy(ebml_t *ebml) {
+static void ebml_destroy(ebml_t *ebml)
+{
 
     free(ebml->header);
     free(ebml->input_buffer);
@@ -285,7 +286,8 @@ static void ebml_destroy(ebml_t *ebml) {
 
 }
 
-static ebml_t *ebml_create() {
+static ebml_t *ebml_create()
+{
 
     ebml_t *ebml = calloc(1, sizeof(ebml_t));
 
@@ -295,158 +297,174 @@ static ebml_t *ebml_create() {
 
     ebml->cluster_id = "\x1F\x43\xB6\x75";
 
-	ebml->cluster_start = -2;
+    ebml->cluster_start = -2;
 
     return ebml;
 
 }
 
-static int ebml_read_space(ebml_t *ebml) {
+static int ebml_read_space(ebml_t *ebml)
+{
 
     int read_space;
 
-    if (ebml->header_read == 1) {
-    	if (ebml->cluster_start > 0) {
-	  		 read_space = ebml->cluster_start;
-    	} else {
-      	     read_space = ebml->position - 4;
-    	}
+    if (ebml->header_read == 1)
+    {
+        if (ebml->cluster_start > 0)
+            read_space = ebml->cluster_start;
+        else
+            read_space = ebml->position - 4;
+            
         return read_space;
-    } else {
-        if (ebml->header_size != 0) {
-            return ebml->header_size;
-        } else {
-            return 0;
-        }
     }
+    else
+    {
+        if (ebml->header_size != 0)
+            return ebml->header_size;
+        else
+            return 0;
+    }
+
 }
 
-static int ebml_read(ebml_t *ebml, char *buffer, int len) {
+static int ebml_read(ebml_t *ebml, char *buffer, int len)
+{
 
     int read_space;
-	int to_read;
+    int to_read;
 
-    if (len < 1) {
+    if (len < 1)
         return 0;
-    }
 
-    if (ebml->header_read == 1) {
-    
-    	if (ebml->cluster_start > 0) {
-	  		 read_space = ebml->cluster_start;
-    	} else {
-      	     read_space = ebml->position - 4;
-    	}
+    if (ebml->header_read == 1) 
+    {
+        if (ebml->cluster_start > 0)
+            read_space = ebml->cluster_start;
+        else
+            read_space = ebml->position - 4;
 
-        if (read_space < 1) {
+        if (read_space < 1)
             return 0;
-        }
 
-        if (read_space >= len ) {
+        if (read_space >= len )
             to_read = len;
-        } else {
+        else
             to_read = read_space;
-        }
 
         memcpy(buffer, ebml->buffer, to_read);
         memmove(ebml->buffer, ebml->buffer + to_read, ebml->position - to_read);
         ebml->position -= to_read;
-        if (ebml->cluster_start > 0) {
-        	ebml->cluster_start -= to_read;
-        }
-
-    } else {
-        if (ebml->header_size != 0) {
-
+        
+        if (ebml->cluster_start > 0)
+            ebml->cluster_start -= to_read;
+    }
+    else
+    {
+        if (ebml->header_size != 0)
+        {
             read_space = ebml->header_size - ebml->header_read_position;
 
-            if (read_space >= len ) {
+            if (read_space >= len)
                 to_read = len;
-            } else {
+            else
                 to_read = read_space;
-            }
 
             memcpy(buffer, ebml->header, to_read);
             ebml->header_read_position += to_read;
 
-            if (ebml->header_read_position == ebml->header_size) {
+            if (ebml->header_read_position == ebml->header_size)
                 ebml->header_read = 1;
-            }
-
-        } else {
+        }
+        else
+        {
             return 0;
         }
     }
-
 
     return to_read;
 
 }
 
-static int ebml_last_was_sync(ebml_t *ebml) {
+static int ebml_last_was_sync(ebml_t *ebml)
+{
 
-  if (ebml->cluster_start == 0) {
-    ebml->cluster_start -= 1;
-    return 0;
-  }
+    if (ebml->cluster_start == 0)
+    {
+        ebml->cluster_start -= 1;
+        return 0;
+    }
   
-  if (ebml->cluster_start == -1) {
-    ebml->cluster_start -= 1;
-    return 1;
-  }
+    if (ebml->cluster_start == -1)
+    {
+        ebml->cluster_start -= 1;
+        return 1;
+    }
     
-  return 0;
+    return 0;
 
 }
 
-static char *ebml_write_buffer(ebml_t *ebml, int len) {
+static char *ebml_write_buffer(ebml_t *ebml, int len)
+{
 
     return (char *)ebml->input_buffer;
 
 }
 
 
-static int ebml_wrote(ebml_t *ebml, int len) {
+static int ebml_wrote(ebml_t *ebml, int len)
+{
 
-    if (ebml->header_size == 0) {
-        if ((ebml->header_position + len) > EBML_HEADER_MAX_SIZE) {
-            ERROR0("EBML Header to large, failing");
+    int b;
+
+    if (ebml->header_size == 0)
+    {
+        if ((ebml->header_position + len) > EBML_HEADER_MAX_SIZE)
+        {
+            ERROR0("EBML Header too large, failing");
             return -1;
         }
-        if (EBML_DEBUG) {
+        
+        if (EBML_DEBUG)
+        {
             printf("EBML: Adding to header, ofset is %d size is %d adding %d\n", 
                    ebml->header_size, ebml->header_position, len);
         }
+        
         memcpy(ebml->header + ebml->header_position, ebml->input_buffer, len);
         ebml->header_position += len;
-    } else {
-		memcpy(ebml->buffer + ebml->position, ebml->input_buffer, len);
     }
-
-	int z;
-	int y;
-	y = 0;
-	
-	for (z = 0; z < len - 4; z++) {
-
-		y = memcmp ( ebml->input_buffer + z, ebml->cluster_id, 4 );
-		if (y == 0) {
-
-			//printf("match!\n");
-
-			if (ebml->header_size == 0) {
-				ebml->header_size = ebml->header_position - len + z;
-				memcpy(ebml->buffer, ebml->input_buffer + z, len - z);
-		        ebml->position = len - z;
-				ebml->cluster_start = -1;
-				return len;
-			} else {
-				ebml->cluster_start = ebml->position + z;
-			}
-		}
-	}
+    else
+    {
+        memcpy(ebml->buffer + ebml->position, ebml->input_buffer, len);
+    }
     
-	ebml->position += len;
+    for (b = 0; b < len - 4; b++)
+    {
+        if (!memcmp(ebml->input_buffer + b, ebml->cluster_id, 4))
+        {
+            if (EBML_DEBUG)
+            {
+                printf("EBML: found cluster\n");
+            }
+        
+            if (ebml->header_size == 0)
+            {
+                ebml->header_size = ebml->header_position - len + b;
+                memcpy(ebml->buffer, ebml->input_buffer + b, len - b);
+                ebml->position = len - b;
+                ebml->cluster_start = -1;
+                return len;
+            }
+            else
+            {
+                ebml->cluster_start = ebml->position + b;
+            }
+        }
+    }
+    
+    ebml->position += len;
 
     return len;
+
 }

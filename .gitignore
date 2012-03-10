@@ -84,6 +84,7 @@ src/format_ogg.o
 src/format_skeleton.o
 src/format_speex.o
 src/format_vorbis.o
+src/format_opus.o
 src/fserve.o
 src/global.o
 src/httpp/.libs/
